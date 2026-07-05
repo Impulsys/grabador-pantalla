@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Grabador Impulsys</string>
+    <string name="subtitulo">Pantalla + micrófono, sin publicidad</string>
+    <string name="grabar">Grabar</string>
+    <string name="detener">Detener</string>
+    <string name="grabando">Grabando pantalla…</string>
+    <string name="listo">Listo para grabar</string>
+    <string name="guardado">Guardado en Galería › Movies › Grabador</string>
+    <string name="permiso_denegado">Permiso cancelado. Volvé a intentar.</string>
+    <string name="necesita_micro">Necesito permiso de micrófono para grabar el sonido.</string>
+    <string name="error_iniciar">No se pudo iniciar:</string>
+    <string name="ayuda">Para que se escuche el sonido de una app o video, subí el volumen del parlante. El micrófono lo capta.</string>
+</resources>
