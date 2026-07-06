@@ -15,9 +15,22 @@ android {
         versionName = "1.0"
     }
 
+    signingConfigs {
+        create("impulsys") {
+            storeFile = file("impulsys.keystore")
+            storePassword = "impulsys2026"
+            keyAlias = "impulsys"
+            keyPassword = "impulsys2026"
+        }
+    }
+
     buildTypes {
+        getByName("debug") {
+            signingConfig = signingConfigs.getByName("impulsys")
+        }
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("impulsys")
         }
     }
 

@@ -29,6 +29,21 @@ jobs:
         with:
           gradle-version: "8.7"
 
+      - name: Llave de firma fija (se crea una vez y se guarda)
+        run: |
+          if [ ! -f app/impulsys.keystore ]; then
+            keytool -genkeypair -v \
+              -keystore app/impulsys.keystore \
+              -storepass impulsys2026 -keypass impulsys2026 \
+              -alias impulsys -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Impulsys, OU=Impulsys, O=Impulsys, L=Cordoba, ST=Cordoba, C=AR"
+            git config user.name "github-actions"
+            git config user.email "actions@github.com"
+            git add -f app/impulsys.keystore
+            git commit -m "Llave de firma fija (updates sin conflicto) [skip ci]"
+            git push origin HEAD:main
+          fi
+
       - name: Compilar APK debug
         run: gradle assembleDebug --no-daemon --stacktrace
 
