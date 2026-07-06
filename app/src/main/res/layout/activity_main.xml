@@ -38,6 +38,25 @@
         app:cornerRadius="40dp"
         app:backgroundTint="#E23B3B" />
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnFlyer"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/elegir_portada"
+        android:textColor="#FFFFFF"
+        app:strokeColor="#3A4250"
+        android:layout_marginTop="28dp" />
+
+    <TextView
+        android:id="@+id/txtFlyer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/portada_ninguna"
+        android:textColor="#6B7482"
+        android:textSize="12sp"
+        android:layout_marginTop="6dp" />
+
     <TextView
         android:id="@+id/txtStatus"
         android:layout_width="wrap_content"
@@ -46,7 +65,7 @@
         android:textColor="#9AA4B2"
         android:textSize="14sp"
         android:gravity="center"
-        android:layout_marginTop="32dp" />
+        android:layout_marginTop="28dp" />
 
     <TextView
         android:layout_width="match_parent"

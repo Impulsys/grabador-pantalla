@@ -32,19 +32,28 @@ class RecorderService : Service() {
     companion object {
         const val ACTION_START = "com.impulsys.grabador.START"
         const val ACTION_STOP = "com.impulsys.grabador.STOP"
+        const val ACTION_PAUSE_RESUME = "com.impulsys.grabador.PAUSE_RESUME"
+        const val ACTION_ADD_COVER = "com.impulsys.grabador.ADD_COVER"
         const val EXTRA_RESULT_CODE = "result_code"
         const val EXTRA_DATA = "data"
+        const val EXTRA_FLYER = "flyer"
         private const val CHANNEL_ID = "grabador_channel"
         private const val NOTIF_ID = 1337
+        private const val FLYER_MS = 4000L
 
         @Volatile
         var isRunning = false
+            private set
+
+        @Volatile
+        var isPaused = false
             private set
     }
 
     private var mediaProjection: MediaProjection? = null
     private var mediaRecorder: MediaRecorder? = null
     private var virtualDisplay: VirtualDisplay? = null
+    private var overlay: OverlayController? = null
 
     private var outputFile: File? = null
     private var outputUri: Uri? = null
@@ -58,21 +67,30 @@ class RecorderService : Service() {
                 stopSelf()
                 return START_NOT_STICKY
             }
+            ACTION_PAUSE_RESUME -> {
+                togglePause()
+                return START_STICKY
+            }
+            ACTION_ADD_COVER -> {
+                overlay?.addCover()
+                return START_STICKY
+            }
             ACTION_START -> {
                 val resultCode = intent.getIntExtra(EXTRA_RESULT_CODE, Activity.RESULT_CANCELED)
                 val data = intent.getParcelableExtraCompat(EXTRA_DATA)
+                val flyer = intent.getStringExtra(EXTRA_FLYER)?.let { Uri.parse(it) }
                 if (data == null) {
                     stopSelf()
                     return START_NOT_STICKY
                 }
                 startForeground(NOTIF_ID, buildNotification())
-                startRecording(resultCode, data)
+                startRecording(resultCode, data, flyer)
             }
         }
         return START_STICKY
     }
 
-    private fun startRecording(resultCode: Int, data: Intent) {
+    private fun startRecording(resultCode: Int, data: Intent, flyerUri: Uri?) {
         try {
             val metrics = screenMetrics()
             val width = (metrics.widthPixels / 2) * 2
@@ -101,6 +119,11 @@ class RecorderService : Service() {
             )
             recorder.start()
             isRunning = true
+            isPaused = false
+
+            overlay = OverlayController(this)
+            flyerUri?.let { overlay?.showFlyer(it, FLYER_MS) }
+            updateNotification()
         } catch (e: Exception) {
             Toast.makeText(this, getString(R.string.error_iniciar) + " " + e.message, Toast.LENGTH_LONG).show()
             stopRecording()
@@ -108,7 +131,24 @@ class RecorderService : Service() {
         }
     }
 
+    private fun togglePause() {
+        if (!isRunning) return
+        try {
+            if (!isPaused) {
+                mediaRecorder?.pause()
+                isPaused = true
+            } else {
+                mediaRecorder?.resume()
+                isPaused = false
+            }
+            updateNotification()
+        } catch (_: Exception) {
+        }
+    }
+
     private fun stopRecording() {
+        overlay?.removeAll()
+        overlay = null
         if (!isRunning && mediaRecorder == null) return
         try {
             mediaRecorder?.stop()
@@ -126,6 +166,7 @@ class RecorderService : Service() {
         mediaProjection = null
         finalizeOutput()
         isRunning = false
+        isPaused = false
     }
 
     private fun createRecorder(width: Int, height: Int): MediaRecorder {
@@ -203,6 +244,14 @@ class RecorderService : Service() {
         return metrics
     }
 
+    private fun servicePendingIntent(action: String, req: Int): PendingIntent {
+        val intent = Intent(this, RecorderService::class.java).setAction(action)
+        return PendingIntent.getService(
+            this, req, intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+    }
+
     private fun buildNotification(): Notification {
         val nm = getSystemService(NotificationManager::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -216,13 +265,25 @@ class RecorderService : Service() {
             this, 0, Intent(this, MainActivity::class.java),
             PendingIntent.FLAG_IMMUTABLE
         )
+
+        val pauseIcon = if (isPaused) R.drawable.ic_play else R.drawable.ic_pause
+        val pauseLabel = getString(if (isPaused) R.string.reanudar else R.string.pausa)
+
         return Notification.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.app_name))
-            .setContentText(getString(R.string.grabando))
+            .setContentText(getString(if (isPaused) R.string.pausado else R.string.grabando))
             .setSmallIcon(R.drawable.ic_rec)
             .setContentIntent(openIntent)
             .setOngoing(true)
+            .addAction(pauseIcon, pauseLabel, servicePendingIntent(ACTION_PAUSE_RESUME, 1))
+            .addAction(R.drawable.ic_cover, getString(R.string.tapar), servicePendingIntent(ACTION_ADD_COVER, 2))
+            .addAction(R.drawable.ic_stop, getString(R.string.detener), servicePendingIntent(ACTION_STOP, 3))
             .build()
+    }
+
+    private fun updateNotification() {
+        val nm = getSystemService(NotificationManager::class.java)
+        nm.notify(NOTIF_ID, buildNotification())
     }
 
     override fun onDestroy() {

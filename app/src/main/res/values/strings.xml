@@ -10,5 +10,13 @@
     <string name="permiso_denegado">Permiso cancelado. Volvé a intentar.</string>
     <string name="necesita_micro">Necesito permiso de micrófono para grabar el sonido.</string>
     <string name="error_iniciar">No se pudo iniciar:</string>
-    <string name="ayuda">Para que se escuche el sonido de una app o video, subí el volumen del parlante. El micrófono lo capta.</string>
+    <string name="ayuda">Para que se escuche el sonido de una app o video, subí el volumen del parlante. El micrófono lo capta.\n\nDurante la grabación, en la notificación tenés: Pausa/Reanudar, Tapar (caja negra: 1 dedo mover, 2 dedos agrandar, toque largo borrar) y Detener.</string>
+    <string name="pausa">Pausa</string>
+    <string name="reanudar">Reanudar</string>
+    <string name="pausado">Grabación en pausa</string>
+    <string name="tapar">Tapar</string>
+    <string name="elegir_portada">🖼️ Elegir portada (opcional)</string>
+    <string name="portada_puesta">Portada elegida ✓ (se muestra al inicio)</string>
+    <string name="portada_ninguna">Sin portada</string>
+    <string name="permiso_overlay">Activá \"Mostrar sobre otras apps\" para poder tapar zonas y mostrar la portada.</string>
 </resources>
