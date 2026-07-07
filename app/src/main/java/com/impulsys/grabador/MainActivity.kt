@@ -8,21 +8,34 @@ import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
+import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var projectionManager: MediaProjectionManager
     private lateinit var button: MaterialButton
     private lateinit var flyerButton: MaterialButton
+    private lateinit var refreshButton: MaterialButton
     private lateinit var status: TextView
     private lateinit var flyerStatus: TextView
+    private lateinit var emptyView: TextView
+    private lateinit var list: RecyclerView
+    private lateinit var adapter: RecordingsAdapter
+
+    private val ioExecutor = Executors.newSingleThreadExecutor()
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     private var flyerUri: Uri? = null
 
@@ -74,13 +87,25 @@ class MainActivity : AppCompatActivity() {
             getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         button = findViewById(R.id.btnRecord)
         flyerButton = findViewById(R.id.btnFlyer)
+        refreshButton = findViewById(R.id.btnRefresh)
         status = findViewById(R.id.txtStatus)
         flyerStatus = findViewById(R.id.txtFlyer)
+        emptyView = findViewById(R.id.txtEmpty)
+        list = findViewById(R.id.listRecordings)
+
+        adapter = RecordingsAdapter(
+            onPlay = ::playRecording,
+            onShare = ::shareRecording,
+            onDelete = ::confirmDelete
+        )
+        list.layoutManager = LinearLayoutManager(this)
+        list.adapter = adapter
 
         button.setOnClickListener {
             if (RecorderService.isRunning) stopRecording() else requestAndStart()
         }
         flyerButton.setOnClickListener { flyerPicker.launch("image/*") }
+        refreshButton.setOnClickListener { loadRecordings() }
         renderRecording(RecorderService.isRunning)
     }
 
@@ -133,6 +158,8 @@ class MainActivity : AppCompatActivity() {
         startService(intent)
         renderRecording(false)
         status.text = getString(R.string.guardado)
+        // Damos un instante a que se finalice el archivo antes de refrescar.
+        mainHandler.postDelayed({ loadRecordings() }, 1200)
     }
 
     private fun renderRecording(recording: Boolean) {
@@ -143,6 +170,61 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    private fun loadRecordings() {
+        ioExecutor.execute {
+            val recordings = try {
+                RecordingsStore.query(this)
+            } catch (_: Exception) {
+                emptyList()
+            }
+            mainHandler.post {
+                adapter.submit(recordings)
+                emptyView.visibility = if (recordings.isEmpty()) TextView.VISIBLE else TextView.GONE
+            }
+        }
+    }
+
+    private fun playRecording(rec: Recording) {
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(rec.uri, "video/mp4")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        try {
+            startActivity(intent)
+        } catch (_: Exception) {
+            Toast.makeText(this, getString(R.string.sin_reproductor), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun shareRecording(rec: Recording) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "video/mp4"
+            putExtra(Intent.EXTRA_STREAM, rec.uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        startActivity(Intent.createChooser(intent, getString(R.string.compartir_con)))
+    }
+
+    private fun confirmDelete(rec: Recording) {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.eliminar_titulo))
+            .setMessage("${rec.name}\n\n${getString(R.string.eliminar_mensaje)}")
+            .setNegativeButton(getString(R.string.cancelar), null)
+            .setPositiveButton(getString(R.string.eliminar)) { _, _ -> deleteRecording(rec) }
+            .show()
+    }
+
+    private fun deleteRecording(rec: Recording) {
+        ioExecutor.execute {
+            val ok = RecordingsStore.delete(this, rec)
+            mainHandler.post {
+                val msg = if (ok) R.string.eliminada else R.string.no_eliminada
+                Toast.makeText(this, getString(msg), Toast.LENGTH_SHORT).show()
+                if (ok) loadRecordings()
+            }
+        }
+    }
+
     private fun hasMic() = ContextCompat.checkSelfPermission(
         this, Manifest.permission.RECORD_AUDIO
     ) == PackageManager.PERMISSION_GRANTED
@@ -150,5 +232,6 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         renderRecording(RecorderService.isRunning)
+        loadRecordings()
     }
 }

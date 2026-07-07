@@ -4,49 +4,58 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
     android:background="#0E1116"
-    android:padding="24dp">
+    android:paddingHorizontal="20dp"
+    android:paddingTop="24dp"
+    android:paddingBottom="12dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/app_name"
         android:textColor="#FFFFFF"
-        android:textSize="26sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="8dp" />
+        android:textSize="24sp"
+        android:textStyle="bold" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/subtitulo"
         android:textColor="#9AA4B2"
-        android:textSize="14sp"
-        android:layout_marginBottom="48dp" />
+        android:textSize="13sp"
+        android:layout_marginBottom="20dp" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnRecord"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/grabar"
-        android:textSize="20sp"
-        android:paddingHorizontal="40dp"
-        android:paddingVertical="20dp"
-        app:icon="@drawable/ic_rec"
-        app:iconSize="28dp"
-        app:cornerRadius="40dp"
-        app:backgroundTint="#E23B3B" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnFlyer"
-        style="@style/Widget.Material3.Button.OutlinedButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/elegir_portada"
-        android:textColor="#FFFFFF"
-        app:strokeColor="#3A4250"
-        android:layout_marginTop="28dp" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRecord"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="@string/grabar"
+            android:textSize="18sp"
+            android:paddingVertical="16dp"
+            app:icon="@drawable/ic_rec"
+            app:iconSize="26dp"
+            app:iconGravity="textStart"
+            app:cornerRadius="36dp"
+            app:backgroundTint="#E23B3B" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnFlyer"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/portada_corta"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            app:strokeColor="#3A4250"
+            android:layout_marginStart="10dp" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/txtFlyer"
@@ -59,21 +68,62 @@
 
     <TextView
         android:id="@+id/txtStatus"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/listo"
         android:textColor="#9AA4B2"
-        android:textSize="14sp"
-        android:gravity="center"
-        android:layout_marginTop="28dp" />
+        android:textSize="13sp"
+        android:layout_marginTop="10dp" />
 
-    <TextView
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#1E2430"
+        android:layout_marginVertical="16dp" />
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/ayuda"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="@string/mis_grabaciones"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRefresh"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/actualizar"
+            android:textColor="#4C9AFF"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/txtEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/sin_grabaciones"
         android:textColor="#6B7482"
-        android:textSize="12sp"
+        android:textSize="13sp"
         android:gravity="center"
-        android:layout_marginTop="48dp" />
+        android:layout_marginTop="24dp"
+        android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/listRecordings"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="8dp"
+        android:clipToPadding="false"
+        android:scrollbars="vertical" />
 
 </LinearLayout>

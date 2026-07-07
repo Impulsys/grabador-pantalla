@@ -19,4 +19,19 @@
     <string name="portada_puesta">Portada elegida ✓ (se muestra al inicio)</string>
     <string name="portada_ninguna">Sin portada</string>
     <string name="permiso_overlay">Activá \"Mostrar sobre otras apps\" para poder tapar zonas y mostrar la portada.</string>
+    <string name="portada_corta">🖼️ Portada</string>
+    <string name="mis_grabaciones">Mis grabaciones</string>
+    <string name="actualizar">↻ Actualizar</string>
+    <string name="sin_grabaciones">Todavía no hay grabaciones.\nTocá \"Grabar\" para crear la primera.</string>
+    <string name="reproducir">Reproducir</string>
+    <string name="compartir">Compartir</string>
+    <string name="eliminar">Eliminar</string>
+    <string name="miniatura">Miniatura</string>
+    <string name="compartir_con">Compartir grabación</string>
+    <string name="sin_reproductor">No hay una app para reproducir video.</string>
+    <string name="eliminar_titulo">¿Eliminar grabación?</string>
+    <string name="eliminar_mensaje">Esta acción no se puede deshacer.</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="eliminada">Grabación eliminada</string>
+    <string name="no_eliminada">No se pudo eliminar</string>
 </resources>
