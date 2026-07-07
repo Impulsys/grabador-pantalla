@@ -185,15 +185,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun playRecording(rec: Recording) {
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(rec.uri, "video/mp4")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        val intent = Intent(this, PlayerActivity::class.java).apply {
+            putExtra(PlayerActivity.EXTRA_URI, rec.uri.toString())
+            putExtra(PlayerActivity.EXTRA_TITLE, rec.name)
         }
-        try {
-            startActivity(intent)
-        } catch (_: Exception) {
-            Toast.makeText(this, getString(R.string.sin_reproductor), Toast.LENGTH_SHORT).show()
-        }
+        startActivity(intent)
     }
 
     private fun shareRecording(rec: Recording) {

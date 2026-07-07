@@ -29,6 +29,7 @@
     <string name="miniatura">Miniatura</string>
     <string name="compartir_con">Compartir grabación</string>
     <string name="sin_reproductor">No hay una app para reproducir video.</string>
+    <string name="error_reproducir">No se pudo reproducir este video.</string>
     <string name="eliminar_titulo">¿Eliminar grabación?</string>
     <string name="eliminar_mensaje">Esta acción no se puede deshacer.</string>
     <string name="cancelar">Cancelar</string>
