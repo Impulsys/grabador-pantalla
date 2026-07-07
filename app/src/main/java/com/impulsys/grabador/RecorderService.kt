@@ -11,6 +11,9 @@ import android.content.Context
 import android.content.Intent
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
+import android.media.MediaCodecInfo
+import android.media.MediaCodecList
+import android.media.MediaFormat
 import android.media.MediaRecorder
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
@@ -93,8 +96,7 @@ class RecorderService : Service() {
     private fun startRecording(resultCode: Int, data: Intent, flyerUri: Uri?) {
         try {
             val metrics = screenMetrics()
-            val width = (metrics.widthPixels / 2) * 2
-            val height = (metrics.heightPixels / 2) * 2
+            val (width, height) = fittedVideoSize(metrics.widthPixels, metrics.heightPixels, 30)
             val dpi = metrics.densityDpi
 
             prepareOutput()
@@ -234,6 +236,53 @@ class RecorderService : Service() {
                 )
             }
         }
+    }
+
+    /**
+     * Ajusta el tamaño de video al que el codificador H.264 del equipo realmente soporta,
+     * manteniendo la proporción de la pantalla. Sin esto, en pantallas altas (ej. 1080x2160)
+     * el encoder rechaza el video y la grabación queda SOLO CON AUDIO.
+     */
+    private fun fittedVideoSize(rawWidth: Int, rawHeight: Int, frameRate: Int): Pair<Int, Int> {
+        val fallback = Pair((rawWidth / 2) * 2, (rawHeight / 2) * 2)
+        return try {
+            val mime = MediaFormat.MIMETYPE_VIDEO_AVC
+            var caps: MediaCodecInfo.VideoCapabilities? = null
+            val list = MediaCodecList(MediaCodecList.REGULAR_CODECS)
+            for (info in list.codecInfos) {
+                if (!info.isEncoder) continue
+                if (info.supportedTypes.any { it.equals(mime, ignoreCase = true) }) {
+                    caps = info.getCapabilitiesForType(mime).videoCapabilities
+                    if (caps != null) break
+                }
+            }
+            val vc = caps ?: return fallback
+            val wAlign = vc.widthAlignment.coerceAtLeast(2)
+            val hAlign = vc.heightAlignment.coerceAtLeast(2)
+
+            var scale = 1.0
+            repeat(24) {
+                val w = align((rawWidth * scale).toInt(), wAlign)
+                val h = align((rawHeight * scale).toInt(), hAlign)
+                if (vc.supportedWidths.contains(w) &&
+                    vc.getSupportedHeightsFor(w).contains(h) &&
+                    vc.areSizeAndRateSupported(w, h, frameRate.toDouble())
+                ) {
+                    return Pair(w, h)
+                }
+                scale *= 0.9
+            }
+            // Último recurso: 720p en la orientación correspondiente.
+            if (rawWidth >= rawHeight) Pair(align(1280, wAlign), align(720, hAlign))
+            else Pair(align(720, wAlign), align(1280, hAlign))
+        } catch (_: Exception) {
+            fallback
+        }
+    }
+
+    private fun align(value: Int, alignment: Int): Int {
+        val v = (value / alignment) * alignment
+        return v.coerceAtLeast(alignment)
     }
 
     private fun screenMetrics(): DisplayMetrics {
